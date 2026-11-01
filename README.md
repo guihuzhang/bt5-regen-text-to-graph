@@ -65,7 +65,7 @@ Each command writes the inputs, generated text, parsed triples, reference XML, a
 
 ## Train models
 
-The WebNLG splits are in `corpora/`. Six-task BT5 training also requires the auxiliary translation files listed under [Data and evaluation](#data-and-evaluation). The launchers accept settings through environment variables.
+The training scripts read the WebNLG splits and BT5 translation pairs from `corpora/`. Set training options through environment variables.
 
 **BT5:**
 
@@ -164,7 +164,7 @@ This shows the model's output, including its predicted relation names. The parse
 
 - `corpora/webnlg-dataset/release_v3.0/` contains the English and Russian WebNLG training, development, and semantic-parsing test sets in XML format.
 - `corpora/data6in1/train_dev_test_redo/` contains the BT5 parsing inputs and target outputs in TSV format.
-- For six-task BT5 training, place the six auxiliary TSVs (not included) in `corpora/data6in1/train_anna_aux/`: `translate_english.tsv` and `translate_russian.tsv` for sentences, `translate_entities_english.tsv` and `translate_entities_russian.tsv` for entity names, and `translate_entities_english_wiki.tsv` and `translate_entities_russian_wiki.tsv` for Wiki entity names.
+- [BT5 translation pairs](corpora/data6in1/train_anna_aux/) cover sentences (`translate_english.tsv`, `translate_russian.tsv`), entity names (`translate_entities_english.tsv`, `translate_entities_russian.tsv`), and Wiki titles (`translate_entities_english_wiki.tsv`, `translate_entities_russian_wiki.tsv`). The language in each filename is the input language.
 - `corpora/webnlg-references/` contains the ReGen evaluation references.
 
 **Saved predictions**
