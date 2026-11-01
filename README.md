@@ -1,8 +1,8 @@
 # BT5 and ReGen Reproduction for WebNLG Text-to-Graph
 
-This repository provides our implementations of BT5 and ReGen for converting text into subject–relation–object triples. It includes training code, WebNLG inputs, saved predictions, and scripts for running the models and recomputing their scores.
+The first author of the [XQDT paper](https://aclanthology.org/2026.emnlp-main.397/) reproduced both BT5 and ReGen for WebNLG text-to-graph parsing, reimplementing the BT5 parser in PyTorch with Hugging Face Transformers and adapting [IBM's original code](https://github.com/IBM/regen) for ReGen. This repository includes training and inference code, saved predictions, and scripts for scoring the predicted subject–relation–object triples.
 
-These reproductions were developed by the authors of [XQDT](https://aclanthology.org/2026.emnlp-main.397/), with help from [Anna Nikiforovskaya](https://github.com/Javanochka).
+For BT5, [Anna Nikiforovskaya](https://github.com/Javanochka) shared her six-task setup for English and Russian semantic parsing in [Google's T5 library](https://github.com/google-research/text-to-text-transfer-transformer), along with the processed training data and bilingual title pairs. She also provided example scripts for training and running an RDF-to-text model and explained how to fine-tune a pretrained multilingual model for parsing.
 
 - **BT5** supports English and Russian semantic parsing, following [Agarwal et al. (2020)](https://aclanthology.org/2020.webnlg-1.13/).
 - **ReGen** implements the English WebNLG **T2G.CE** setting of [Dognin et al. (2021)](https://aclanthology.org/2021.emnlp-main.83/), using cross-entropy training.
@@ -17,7 +17,7 @@ Scores below are recomputed from the saved predictions on the WebNLG 2020 semant
 | BT5 | Russian | 93.34 | 93.65 | 93.46 |
 | ReGen T2G.CE | English | 70.35 | 72.18 | 71.07 |
 
-The BT5 predictions come from step 54,000. The ReGen predictions come from epoch 3 of the continuation run. Both use beam search with five beams.
+This reproduction uses ReGen’s cross-entropy model (CE) because it had the highest Exact F1 on WebNLG text-to-graph in [Table 2 of the paper](https://aclanthology.org/2021.emnlp-main.83.pdf#page=7): 72.3 for CE versus 72.0 after reinforcement learning (RL). The [IBM training guide](https://github.com/IBM/regen/blob/main/docs/train_t2g_webnlg.md#overview) reports lower scores for its example run: 70.11 for CE and 70.91 for RL (SCST). The reproduced model scored 71.07, between the two reported CE scores.
 
 ## Setup
 
@@ -111,9 +111,9 @@ The continuation launcher uses four epochs, learning rate `2e-5`, batch size 4 p
 
 ### BT5 initialization and task sampling
 
-Agarwal et al. first train on translation tasks. We approximate this stage by starting from [`cointegrated/rut5-base-multitask`](https://huggingface.co/cointegrated/rut5-base-multitask), which already includes English–Russian translation training.
+Agarwal et al. first train on translation tasks. This reproduction approximates this stage by starting from [`cointegrated/rut5-base-multitask`](https://huggingface.co/cointegrated/rut5-base-multitask), which already includes English–Russian translation training.
 
-When sampling tasks in proportion to their dataset sizes, we did not match the scores reported by Agarwal et al. We instead select one of six tasks for each training batch, with probability **1/6** per task:
+In the initial runs, sampling tasks in proportion to their dataset sizes did not match the scores reported by Agarwal et al. The training script instead samples one of six tasks per batch, with probability **1/6** per task:
 
 - **English semantic parsing:** convert English text into triples.
 - **Russian semantic parsing:** convert Russian text into triples.
@@ -124,11 +124,11 @@ When sampling tasks in proportion to their dataset sizes, we did not match the s
 
 Within each entity-translation task, the base and Wiki entity lists are sampled with equal probability. Thus, each of these four entity data streams receives probability 1/12 overall.
 
-With this setup, our saved BT5 predictions give English Exact F1 of **67.62**, close to the **68.19** reported in [Agarwal et al., Table 8](https://aclanthology.org/2020.webnlg-1.13.pdf). The corresponding Russian scores are **93.46** and **91.11**.
+With this setup, the saved BT5 predictions give English Exact F1 of **67.62**, close to the **68.19** reported in [Agarwal et al., Table 8](https://aclanthology.org/2020.webnlg-1.13.pdf). The corresponding Russian scores are **93.46** and **91.11**.
 
 ### ReGen cross-entropy training
 
-We focus on T2G.CE, the WebNLG text-to-graph setting trained with cross-entropy. ReGen's Table 2 reports Exact F1 of 72.3 for CE and 72.0 for RL on this task. The implementation uses T5-large, the `Text to Graph:` prefix, and the graph markers `__subject__`, `__predicate__`, and `__object__`. Training uses individual text–graph pairs with graph-order permutations.
+The implementation uses T5-large, the `Text to Graph:` prefix, and the graph markers `__subject__`, `__predicate__`, and `__object__`. Training uses individual text–graph pairs with graph-order permutations.
 
 ### From generated text to triples
 
@@ -180,7 +180,7 @@ Evaluation uses the same example order in the predictions and references. The ev
 
 ## Citation
 
-Please cite the original paper for the model you use. If you use our reproduction code or checkpoints, please also cite XQDT.
+Please cite the original paper for the model you use. If you use the reproduction code or checkpoints, please also cite [XQDT](https://aclanthology.org/2026.emnlp-main.397/).
 
 ```bibtex
 @inproceedings{agarwal-etal-2020-machine,
